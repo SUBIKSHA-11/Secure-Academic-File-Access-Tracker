@@ -1,7 +1,7 @@
 package com.subiks.securefiletracker.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,44 +14,34 @@ import com.subiks.securefiletracker.util.JwtUtil;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 public class AuthController {
-
-    @Autowired
-    private UserService userService;
 @Autowired
 private JwtUtil jwtUtil;
 
-    // REGISTER API
+    @Autowired
+    private UserService userService;
+
+    // REGISTER
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return userService.saveUser(user);
-    }
-  @PostMapping("/login")
-public String login(@RequestBody User loginUser) {
-
-    User dbUser = userService.findByEmail(loginUser.getEmail());
-
-    if (dbUser == null) {
-        return "User not found";
+    public ResponseEntity<?> register(@RequestBody User user) {
+        return ResponseEntity.ok(userService.register(user));
     }
 
-    boolean isPasswordCorrect = userService.checkPassword(
-            loginUser.getPassword(),
-            dbUser.getPassword()
-    );
+    // LOGIN
+   @PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody User user) {
 
-    if (!isPasswordCorrect) {
-        return "Invalid password";
+    User loggedUser =
+            userService.login(user.getEmail(), user.getPassword());
+
+    if (loggedUser == null) {
+        return ResponseEntity.status(401).body("Invalid credentials");
     }
 
-    // JWT generate pannrom
-    String token = jwtUtil.generateToken(dbUser.getEmail(), dbUser.getRole());
+    String token = jwtUtil.generateToken(loggedUser.getEmail(),loggedUser.getRole());
 
-    return token;
+    return ResponseEntity.ok(token);
 }
 
 }
-
-
-

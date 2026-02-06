@@ -1,4 +1,5 @@
 package com.subiks.securefiletracker.service;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,33 +13,37 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    // save user
-    public User saveUser(User user) {
-        // password encode pannrom
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    // REGISTER
+    public User register(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    // find user by email
+    // LOGIN
+    public User login(String email, String password) {
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) return null;
+
+        if (encoder.matches(password, user.getPassword())) {
+            return user;
+        }
+        return null;
+    }
+
+    // USED BY JWT FILTER
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
 
-    public BCryptPasswordEncoder getPasswordEncoder() {
-        return passwordEncoder;
+    public BCryptPasswordEncoder getEncoder() {
+        return encoder;
     }
 
-    public void setPasswordEncoder(BCryptPasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+    public void setEncoder(BCryptPasswordEncoder encoder) {
+        this.encoder = encoder;
     }
-public boolean checkPassword(String rawPassword, String encodedPassword) {
-    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    return encoder.matches(rawPassword, encodedPassword);
 }
-
-    
-}
-
