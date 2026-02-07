@@ -1,9 +1,12 @@
 package com.subiks.securefiletracker.filter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -28,21 +31,23 @@ public class JwtFilter extends OncePerRequestFilter {
     private UserService userService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
-
-        String email = null;
         String token = null;
+        String email = null;
 
+        // 1️⃣ Token extract
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             email = jwtUtil.extractEmail(token);
         }
 
+        // 2️⃣ Authenticate user
         if (email != null &&
             SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -50,11 +55,22 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (user != null && jwtUtil.validateToken(token, email)) {
 
+                // 3️⃣ Role set pannrom (Java 8 safe)
+                List<SimpleGrantedAuthority> authorities =
+                        new ArrayList<>();
+
+                authorities.add(
+                        new SimpleGrantedAuthority(
+                                "ROLE_" + user.getRole()
+                        )
+                );
+
+                // 4️⃣ Authentication token create
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 email,
                                 null,
-                                java.util.Collections.emptyList()
+                                authorities
                         );
 
                 authToken.setDetails(
@@ -62,6 +78,7 @@ public class JwtFilter extends OncePerRequestFilter {
                                 .buildDetails(request)
                 );
 
+                // 5️⃣ Set authentication
                 SecurityContextHolder.getContext()
                         .setAuthentication(authToken);
             }

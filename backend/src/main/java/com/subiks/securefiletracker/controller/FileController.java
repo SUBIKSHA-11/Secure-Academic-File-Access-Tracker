@@ -2,12 +2,16 @@ package com.subiks.securefiletracker.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,103 +19,104 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.subiks.securefiletracker.model.FileEntity;
-import com.subiks.securefiletracker.service.AccessLogService;
 import com.subiks.securefiletracker.service.FileService;
 
 @RestController
 @RequestMapping("/files")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 public class FileController {
 
     @Autowired
     private FileService fileService;
-@Autowired
-private AccessLogService accessLogService;
+    //private FileRepository fileRepository;
 
-    // FILE UPLOAD API
-   @PostMapping(value = "/upload", 
-              consumes = "multipart/form-data")
-public ResponseEntity<?> uploadFile(
-    
-        @RequestParam("file") MultipartFile file,
-        @RequestParam("sensitivity") String sensitivity,
-        Authentication authentication) {
-             System.out.println("=== UPLOAD API HIT ===");
-    /*System.out.println("File object: " + file);
-    System.out.println("File name: " +
-            (file != null ? file.getOriginalFilename() : "NULL"));
-    System.out.println("Sensitivity: " + sensitivity);
-    System.out.println("User: " +
-            (authentication != null ? authentication.getName() : "NULL"));*/
-if (file == null || file.isEmpty()) {
-        return ResponseEntity.badRequest()
-                .body("File is missing or empty");
-    }
-    if (authentication == null) {
-    return ResponseEntity.status(401).body("Unauthorized");
-}
+    // FACULTY upload
+    @PreAuthorize("hasRole('FACULTY')")
 
-String email = authentication.getName();
+    @PostMapping("/upload")
+    public ResponseEntity<?> upload(
+            @RequestParam MultipartFile file,
+            @RequestParam Long lessonId,
+            @RequestParam String sensitivity,
+            Authentication auth) {
 
-    String role = fileService.getUserRole(email);
-
-    if ("STUDENT".equals(role)) {
-        return ResponseEntity.status(403)
-                .body("Students are not allowed to upload files");
+        try {
+            return ResponseEntity.ok(
+                    fileService.uploadFile(
+                            file,
+                            lessonId,
+                            sensitivity,
+                            auth.getName()
+                    )
+            );
+        } catch (IOException e) {
+            return ResponseEntity.badRequest()
+                    .body("Upload failed"+ e.getMessage());
+        }
     }
 
-    try {
-        FileEntity savedFile =
-                fileService.uploadFile(file, sensitivity, email);
+    // STUDENT fetch lesson-wise files
+    @PreAuthorize("hasRole('STUDENT')")
+    @GetMapping("/lesson/{lessonId}")
+    public ResponseEntity<List<FileEntity>> getFiles(
+            @PathVariable Long lessonId) {
 
-        return ResponseEntity.ok(savedFile);
-
-    } catch (IOException e) {
-        return ResponseEntity.badRequest()
-                .body("File upload failed");
+        return ResponseEntity.ok(
+                fileService.getFilesByLesson(lessonId)
+        );
     }
-}
+    @PreAuthorize("hasRole('STUDENT')")
+   @GetMapping("/search")
+public ResponseEntity<List<FileEntity>> searchFiles(
+        @RequestParam Long subjectId,
+        @RequestParam Long semesterId,
+        @RequestParam(required = false) String sensitivity) {
 
-    // FILE LIST API
-@GetMapping("/list")
-public ResponseEntity<?> listFiles() {
-    return ResponseEntity.ok(fileService.getAllFiles());
+    return ResponseEntity.ok(
+            fileService.searchFiles(subjectId, semesterId, sensitivity)
+    );
 }
-@GetMapping("/download")
+// STUDENT / FACULTY download file
+@PreAuthorize("hasAnyRole('STUDENT','FACULTY','ADMIN')")
+@GetMapping("/download/{fileId}")
 public ResponseEntity<?> downloadFile(
-        @RequestParam("name") String fileName,
+        @PathVariable Long fileId,
         Authentication authentication) {
 
-    File file = new File("uploads/" + fileName);
-
-    if (!file.exists()) {
-        return ResponseEntity.badRequest().body("File not found");
-    }
-
     try {
-        byte[] data = java.nio.file.Files.readAllBytes(file.toPath());
+        FileEntity fileEntity = fileService.getFileById(fileId);
 
-        // log download
-        accessLogService.log(
-                authentication.getName(),
-                "DOWNLOAD",
-                fileName,
-                false
+        if (fileEntity == null) {
+            return ResponseEntity.badRequest()
+                    .body("File not found");
+        }
+
+        File file = new File(
+                System.getProperty("user.dir")
+                        + "/uploads/"
+                        + fileEntity.getStoredFileName()
         );
 
+        if (!file.exists()) {
+            return ResponseEntity.badRequest()
+                    .body("File not found on server");
+        }
+
+        byte[] data = Files.readAllBytes(file.toPath());
+
         return ResponseEntity.ok()
-                .header("Content-Disposition",
-                        "attachment; filename=\"" + fileName + "\"")
+                .header(
+                    "Content-Disposition",
+                    "attachment; filename=\"" 
+                    + fileEntity.getOriginalFileName() + "\""
+                )
                 .body(data);
 
     } catch (IOException e) {
         return ResponseEntity.internalServerError()
-                .body("Download failed");
+                .body("Download failed: " + e.getMessage());
     }
 }
-@GetMapping("/test")
-public String test() {
-    return "FILE CONTROLLER WORKING";
-}
+
 
 }

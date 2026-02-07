@@ -4,7 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.subiks.securefiletracker.model.Department;
+import com.subiks.securefiletracker.model.Semester;
 import com.subiks.securefiletracker.model.User;
+import com.subiks.securefiletracker.repository.DepartmentRepository;
+import com.subiks.securefiletracker.repository.SemesterRepository;
 import com.subiks.securefiletracker.repository.UserRepository;
 
 @Service
@@ -13,37 +17,45 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
-    // REGISTER
-    public User register(User user) {
-        user.setPassword(encoder.encode(user.getPassword()));
+    @Autowired
+    private SemesterRepository semesterRepository;
+
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    // ADMIN creates student / faculty
+    public User createUser(
+            String name,
+            String email,
+            String password,
+            String role,
+            Long deptId,
+            Long semId) {
+
+        Department dept = departmentRepository.findById(deptId)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+
+        Semester sem = null;
+        if (role.equals("STUDENT")) {
+            sem = semesterRepository.findById(semId)
+                    .orElseThrow(() -> new RuntimeException("Semester not found"));
+        }
+
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword(encoder.encode(password));
+        user.setRole(role);
+        user.setDepartment(dept);
+        user.setSemester(sem);
+
         return userRepository.save(user);
     }
 
-    // LOGIN
-    public User login(String email, String password) {
-
-        User user = userRepository.findByEmail(email).orElse(null);
-
-        if (user == null) return null;
-
-        if (encoder.matches(password, user.getPassword())) {
-            return user;
-        }
-        return null;
-    }
-
-    // USED BY JWT FILTER
+    // LOGIN SUPPORT
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
-    }
-
-    public BCryptPasswordEncoder getEncoder() {
-        return encoder;
-    }
-
-    public void setEncoder(BCryptPasswordEncoder encoder) {
-        this.encoder = encoder;
     }
 }

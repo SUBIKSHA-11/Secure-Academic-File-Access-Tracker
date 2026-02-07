@@ -11,75 +11,72 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.subiks.securefiletracker.model.FileEntity;
-import com.subiks.securefiletracker.model.User;
+import com.subiks.securefiletracker.model.Lesson;
 import com.subiks.securefiletracker.repository.FileRepository;
-import com.subiks.securefiletracker.repository.UserRepository;
+import com.subiks.securefiletracker.repository.LessonRepository;
 
 @Service
 public class FileService {
-
-   private static final String UPLOAD_DIR =
+private static final String UPLOAD_DIR =
         System.getProperty("user.dir") + "/uploads";
+
 
     @Autowired
     private FileRepository fileRepository;
 
     @Autowired
-    private UserRepository userRepository;
-@Autowired
-private AccessLogService accessLogService;
+    private LessonRepository lessonRepository;
 
+    // FACULTY upload
     public FileEntity uploadFile(
             MultipartFile file,
+            Long lessonId,
             String sensitivity,
             String uploadedBy) throws IOException {
 
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
         File uploadFolder = new File(UPLOAD_DIR);
         if (!uploadFolder.exists()) {
-            uploadFolder.mkdirs();
+            uploadFolder.mkdir();
         }
-boolean suspicious = false;
 
-// rule 1: odd time
-int hour = LocalDateTime.now().getHour();
-if (hour >= 21) {
-    suspicious = true;
-}
-
-// save log
-accessLogService.log(
-        uploadedBy,
-        "UPLOAD",
-        file.getOriginalFilename(),
-        suspicious
-);
-
-        String storedFileName =
+        String storedName =
                 UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        File dest = new File(uploadFolder, storedFileName);
+        File dest = new File(uploadFolder, storedName);
         file.transferTo(dest);
 
-        FileEntity fileEntity = new FileEntity();
-        fileEntity.setOriginalFileName(file.getOriginalFilename());
-        fileEntity.setStoredFileName(storedFileName);
-        fileEntity.setSensitivity(sensitivity);
-        fileEntity.setUploadedBy(uploadedBy);
-        fileEntity.setUploadTime(LocalDateTime.now());
+        FileEntity entity = new FileEntity();
+        entity.setOriginalFileName(file.getOriginalFilename());
+        entity.setStoredFileName(storedName);
+        entity.setLesson(lesson);
+        entity.setUploadedBy(uploadedBy);
+        entity.setSensitivity(sensitivity);
+        entity.setUploadTime(LocalDateTime.now());
 
-        return fileRepository.save(fileEntity);
-        
+        return fileRepository.save(entity);
     }
 
-    public List<FileEntity> getAllFiles() {
-        return fileRepository.findAll();
+    // STUDENT fetch lesson-wise files
+    public List<FileEntity> getFilesByLesson(Long lessonId) {
+        return fileRepository.findByLessonId(lessonId);
     }
+    public List<FileEntity> searchFiles(
+        Long subjectId,
+        Long semesterId,
+        String sensitivity) {
 
-    // ROLE CHECK SUPPORT
-    public String getUserRole(String email) {
-        return userRepository.findByEmail(email)
-                .map(User::getRole)
-                .orElse("UNKNOWN");
-    }
-    
+    return fileRepository.searchFiles(
+            subjectId,
+            semesterId,
+            sensitivity
+    );
+}
+public FileEntity getFileById(Long fileId) {
+    return fileRepository.findById(fileId).orElse(null);
+}
+
+
 }

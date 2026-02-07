@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -16,68 +18,49 @@ public class FileEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Original file name (example: notes.pdf)
     private String originalFileName;
-
-    // Stored file name (UUID_notes.pdf)
     private String storedFileName;
 
-    // LOW, MEDIUM, HIGH
-    private String sensitivity;
+    private String uploadedBy;   // faculty email
+    private String sensitivity;  // LOW / HIGH
 
-    // who uploaded (email)
-    private String uploadedBy;
-
-    // upload time
     private LocalDateTime uploadTime;
 
-    // getters and setters
+    @ManyToOne
+    @JoinColumn(name = "lesson_id")
+    private Lesson lesson;
 
-    public Long getId() {
-        return id;
-    }
+    // getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-
+    public String getOriginalFileName() { return originalFileName; }
     public void setOriginalFileName(String originalFileName) {
         this.originalFileName = originalFileName;
     }
 
-    public String getStoredFileName() {
-        return storedFileName;
-    }
-
+    public String getStoredFileName() { return storedFileName; }
     public void setStoredFileName(String storedFileName) {
         this.storedFileName = storedFileName;
     }
 
-    public String getSensitivity() {
-        return sensitivity;
-    }
-
-    public void setSensitivity(String sensitivity) {
-        this.sensitivity = sensitivity;
-    }
-
-    public String getUploadedBy() {
-        return uploadedBy;
-    }
-
+    public String getUploadedBy() { return uploadedBy; }
     public void setUploadedBy(String uploadedBy) {
         this.uploadedBy = uploadedBy;
     }
 
-    public LocalDateTime getUploadTime() {
-        return uploadTime;
+    public String getSensitivity() { return sensitivity; }
+    public void setSensitivity(String sensitivity) {
+        this.sensitivity = sensitivity;
     }
 
+    public LocalDateTime getUploadTime() { return uploadTime; }
     public void setUploadTime(LocalDateTime uploadTime) {
         this.uploadTime = uploadTime;
+    }
+
+    public Lesson getLesson() { return lesson; }
+    public void setLesson(Lesson lesson) {
+        this.lesson = lesson;
     }
 }
