@@ -1,7 +1,6 @@
 package com.subiks.securefiletracker.filter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,17 +36,24 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String email = null;
+        final String authHeader = request.getHeader("Authorization");
 
-        // 1️⃣ Token extract
+        String email = null;
+        String token = null;
+
+        // 🔹 Extract token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwtUtil.extractEmail(token);
+            try {
+                email = jwtUtil.extractEmail(token);
+            } catch (Exception e) {
+                // invalid token
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
 
-        // 2️⃣ Authenticate user
+        // 🔹 Authenticate only if not already authenticated
         if (email != null &&
             SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -55,20 +61,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (user != null && jwtUtil.validateToken(token, email)) {
 
-                // 3️⃣ Role set pannrom (Java 8 safe)
+                // ⭐ THIS IS THE MOST IMPORTANT PART ⭐
                 List<SimpleGrantedAuthority> authorities =
-                        new ArrayList<>();
+                        List.of(new SimpleGrantedAuthority(user.getRole().startsWith("ROLE_")
+        ? user.getRole()
+        : "ROLE_" + user.getRole())
+);
 
-                authorities.add(
-                        new SimpleGrantedAuthority(
-                                "ROLE_" + user.getRole()
-                        )
-                );
-
-                // 4️⃣ Authentication token create
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                email,
+                                user.getEmail(),
                                 null,
                                 authorities
                         );
@@ -78,9 +80,14 @@ public class JwtFilter extends OncePerRequestFilter {
                                 .buildDetails(request)
                 );
 
-                // 5️⃣ Set authentication
-                SecurityContextHolder.getContext()
+                SecurityContextHolder
+                        .getContext()
                         .setAuthentication(authToken);
+
+                // 🔍 TEMP DEBUG (REMOVE LATER)
+                System.out.println(
+                    "AUTH SET → " + authToken.getAuthorities()
+                );
             }
         }
 

@@ -12,16 +12,56 @@ const FilesView = ({ lesson, goBack }) => {
       .catch((err) => console.error(err));
   }, [lesson]);
 
-  const downloadFile = (fileId) => {
-    window.open(
-      `http://localhost:8080/files/download/${fileId}`,
-      "_blank"
-    );
+  // ⬇️ DOWNLOAD FILE (JWT + blob)
+  const downloadFile = async (file) => {
+    try {
+      const res = await api.get(
+        `/files/download/${file.id}`,
+        { responseType: "blob" }
+      );
+
+      const url = window.URL.createObjectURL(
+        new Blob([res.data])
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", file.originalFileName);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Download failed", err);
+    }
+  };
+
+  // 👁️ VIEW FILE (PDF preview)
+  const viewFile = async (file) => {
+    try {
+      const res = await api.get(
+        `/files/download/${file.id}`,
+        { responseType: "blob" }
+      );
+
+      const blob = new Blob(
+        [res.data],
+        { type: "application/pdf" } // 🔥 IMPORTANT
+      );
+
+      const fileURL = window.URL.createObjectURL(blob);
+      window.open(fileURL, "_blank");
+    } catch (err) {
+      console.error("View failed", err);
+    }
   };
 
   return (
     <div className="dashboard">
-      <button onClick={goBack}>⬅ Back</button>
+      <button className="stu-back-btn" onClick={goBack}>
+  ⬅ Back
+</button>
+
 
       <div className="welcome-card">
         <h2>📂 {lesson.name}</h2>
@@ -47,22 +87,35 @@ const FilesView = ({ lesson, goBack }) => {
               🔐 {file.sensitivity}
             </p>
 
-            <button
-              style={{
-                marginTop: "10px",
-                padding: "10px",
-                borderRadius: "10px",
-                border: "none",
-                cursor: "pointer",
-                background:
-                  "linear-gradient(90deg,#14b8a6,#f59e0b)",
-                color: "#020617",
-                fontWeight: "bold",
-              }}
-              onClick={() => downloadFile(file.id)}
-            >
-              ⬇️ Download
-            </button>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+              <button
+                onClick={() => viewFile(file)}
+                style={{
+                  padding: "8px",
+                  borderRadius: "10px",
+                  border: "none",
+                  cursor: "pointer",
+                  background: "#22c55e",
+                  fontWeight: "bold",
+                }}
+              >
+                👁️ View
+              </button>
+
+              <button
+                onClick={() => downloadFile(file)}
+                style={{
+                  padding: "8px",
+                  borderRadius: "10px",
+                  border: "none",
+                  cursor: "pointer",
+                  background: "#22c55e",
+                  fontWeight: "bold",
+                }}
+              >
+                ⬇️ Download
+              </button>
+            </div>
           </div>
         ))}
       </div>

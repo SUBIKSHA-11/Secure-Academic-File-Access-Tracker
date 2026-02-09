@@ -1,11 +1,15 @@
 package com.subiks.securefiletracker.model;
 
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,6 +25,9 @@ public class Lesson {
     @ManyToOne
     @JoinColumn(name = "subject_id")
     private Subject subject;
+@OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    @SuppressWarnings("unused")
+    private List<FileEntity> files;
 
     // getters & setters
     public Long getId() { return id; }
@@ -32,5 +39,9 @@ public class Lesson {
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) {
         this.subject = subject;
+    }
+
+    public void setFiles(List<FileEntity> files) {
+        this.files = files;
     }
 }

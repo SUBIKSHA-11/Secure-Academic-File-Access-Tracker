@@ -8,8 +8,7 @@ const SubjectView = ({ department, semester, goBack }) => {
   const [selectedSubject, setSelectedSubject] = useState(null);
 
   useEffect(() => {
-    api
-      .get(`/admin/subjects/${department.id}/${semester.id}`)
+     api.get(`/subjects/${department.id}/${semester.id}`)
       .then((res) => setSubjects(res.data))
       .catch((err) => console.error(err));
   }, [department, semester]);
@@ -25,7 +24,10 @@ const SubjectView = ({ department, semester, goBack }) => {
 
   return (
     <div className="dashboard">
-      <button onClick={goBack}>⬅ Back</button>
+     <button className="stu-back-btn" onClick={goBack}>
+  ⬅ Back
+</button>
+
 
       <div className="welcome-card">
         <h2>

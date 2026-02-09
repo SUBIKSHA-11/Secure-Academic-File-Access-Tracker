@@ -1,29 +1,48 @@
-import React, { useState } from "react";
-import { FaUpload, FaBook } from "react-icons/fa";
-import FacultyBrowse from "./FacultyBrowse";
-import FacultyUpload from "./FacultyUpload";
+import React, { useEffect, useState } from "react";
+import api from "../../services/api";
 import "../../styles/faculty.css";
+import { FaUniversity } from "react-icons/fa";
+import FacultyDepartmentView from "./FacultyDepartmentView";
 
 const FacultyDashboard = () => {
-  const [view, setView] = useState("browse");
-  const email = localStorage.getItem("email");
+  const [departments, setDepartments] = useState([]);
+  const [selectedDept, setSelectedDept] = useState(null);
+
+  const facultyEmail = localStorage.getItem("email");
+
+  useEffect(() => {
+    api.get("/departments")
+      .then(res => setDepartments(res.data));
+  }, []);
+
+  if (selectedDept) {
+    return (
+      <FacultyDepartmentView
+        department={selectedDept}
+        goBack={() => setSelectedDept(null)}
+      />
+    );
+  }
 
   return (
-    <div className="faculty-page">
-      <div className="faculty-header">
-        <h2>Welcome, {email}</h2>
-
-        <div>
-          <button className="nav-btn" onClick={() => setView("browse")}>
-            <FaBook /> Browse Files
-          </button>{" "}
-          <button className="nav-btn" onClick={() => setView("upload")}>
-            <FaUpload /> Upload File
-          </button>
-        </div>
+    <div className="faculty-bg">
+      <div className="faculty-card">
+        <h2>Welcome, {facultyEmail}</h2>
+        <p>Select your department</p>
       </div>
 
-      {view === "browse" ? <FacultyBrowse /> : <FacultyUpload />}
+      <div className="faculty-grid">
+        {departments.map(dept => (
+          <div
+            key={dept.id}
+            className="faculty-item"
+            onClick={() => setSelectedDept(dept)}
+          >
+            <FaUniversity className="icon" />
+            <h3>{dept.name}</h3>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

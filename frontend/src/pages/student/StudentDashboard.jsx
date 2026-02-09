@@ -10,7 +10,7 @@ const StudentDashboard = () => {
   const email = localStorage.getItem("email");
 
   useEffect(() => {
-    api.get("/admin/departments")
+    api.get("/departments")
       .then(res => setDepartments(res.data))
       .catch(err => console.error(err));
   }, []);

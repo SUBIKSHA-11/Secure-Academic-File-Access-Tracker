@@ -8,8 +8,7 @@ const LessonView = ({ subject, goBack }) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
 
   useEffect(() => {
-    api
-      .get(`/admin/lessons/${subject.id}`)
+      api.get(`/lessons/${subject.id}`)
       .then((res) => setLessons(res.data))
       .catch((err) => console.error(err));
   }, [subject]);
@@ -25,7 +24,10 @@ const LessonView = ({ subject, goBack }) => {
 
   return (
     <div className="dashboard">
-      <button onClick={goBack}>⬅ Back</button>
+      <button className="stu-back-btn" onClick={goBack}>
+  ⬅ Back
+</button>
+
 
       <div className="welcome-card">
         <h2>📚 {subject.name}</h2>
@@ -46,6 +48,7 @@ const LessonView = ({ subject, goBack }) => {
       </div>
     </div>
   );
+  
 };
 
 export default LessonView;

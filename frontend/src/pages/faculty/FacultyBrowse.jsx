@@ -4,9 +4,10 @@ import { FaUniversity } from "react-icons/fa";
 import FacultySemester from "./FacultySemester";
 import "../../styles/faculty.css";
 
-const FacultyBrowse = () => {
+const FacultyBrowse = ({ onUploadSelect }) => {
   const [departments, setDepartments] = useState([]);
   const [selectedDept, setSelectedDept] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     api.get("/admin/departments")
@@ -18,25 +19,37 @@ const FacultyBrowse = () => {
       <FacultySemester
         department={selectedDept}
         goBack={() => setSelectedDept(null)}
+        onUploadSelect={onUploadSelect}
       />
     );
   }
 
   return (
     <div className="faculty-card">
-      <h3>Select Department</h3>
+      <h3>Browse Departments</h3>
+
+      <input
+        placeholder="Search department"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{ marginBottom: "15px", padding: "8px", width: "100%" }}
+      />
 
       <div className="faculty-grid">
-        {departments.map(dept => (
-          <div
-            key={dept.id}
-            className="faculty-item"
-            onClick={() => setSelectedDept(dept)}
-          >
-            <FaUniversity className="icon" />
-            <h4>{dept.name}</h4>
-          </div>
-        ))}
+        {departments
+          .filter(d =>
+            d.name.toLowerCase().includes(search.toLowerCase())
+          )
+          .map(dept => (
+            <div
+              key={dept.id}
+              className="faculty-item"
+              onClick={() => setSelectedDept(dept)}
+            >
+              <FaUniversity className="icon" />
+              <h4>{dept.name}</h4>
+            </div>
+          ))}
       </div>
     </div>
   );

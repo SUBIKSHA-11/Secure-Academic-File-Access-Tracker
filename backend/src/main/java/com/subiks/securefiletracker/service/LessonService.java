@@ -16,22 +16,34 @@ public class LessonService {
     @Autowired
     private LessonRepository lessonRepository;
 
-    @Autowired
-    private SubjectRepository subjectRepository;
-
-    public Lesson addLesson(Long subjectId, String name) {
-
-        Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new RuntimeException("Subject not found"));
-
-        Lesson lesson = new Lesson();
-        lesson.setName(name);
-        lesson.setSubject(subject);
-
-        return lessonRepository.save(lesson);
-    }
-
     public List<Lesson> getLessonsBySubject(Long subjectId) {
         return lessonRepository.findBySubjectId(subjectId);
     }
+
+    public void updateLessonName(Long lessonId, String name) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+        lesson.setName(name);
+        lessonRepository.save(lesson);
+    }
+
+    public void deleteLesson(Long lessonId) {
+        lessonRepository.deleteById(lessonId);
+    }
+
+@Autowired
+private SubjectRepository subjectRepository;
+
+public void addLesson(String name, Long subjectId) {
+
+    Subject subject = subjectRepository.findById(subjectId)
+            .orElseThrow(() -> new RuntimeException("Subject not found"));
+
+    Lesson lesson = new Lesson();
+    lesson.setName(name);
+    lesson.setSubject(subject);
+
+    lessonRepository.save(lesson);
+}
+
 }

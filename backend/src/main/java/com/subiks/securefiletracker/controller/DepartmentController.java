@@ -15,7 +15,7 @@ import com.subiks.securefiletracker.model.Department;
 import com.subiks.securefiletracker.service.DepartmentService;
 
 @RestController
-@RequestMapping("/admin/departments")
+@RequestMapping("/departments")
 @CrossOrigin
 public class DepartmentController {
 

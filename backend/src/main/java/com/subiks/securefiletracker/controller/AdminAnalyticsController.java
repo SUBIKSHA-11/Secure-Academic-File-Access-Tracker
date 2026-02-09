@@ -3,6 +3,7 @@ package com.subiks.securefiletracker.controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,8 @@ import com.subiks.securefiletracker.service.AdminAnalyticsService;
 @RestController
 @RequestMapping("/admin/analytics")
 @CrossOrigin
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+
 public class AdminAnalyticsController {
 
     @Autowired

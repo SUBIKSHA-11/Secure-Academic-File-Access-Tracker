@@ -8,10 +8,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleException(Exception e) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Something went wrong: " + e.getMessage());
+    }
+
+    @SuppressWarnings("unused")
+    private static class RuntimeuntimeException {
+
+        public RuntimeuntimeException() {
+        }
     }
 }

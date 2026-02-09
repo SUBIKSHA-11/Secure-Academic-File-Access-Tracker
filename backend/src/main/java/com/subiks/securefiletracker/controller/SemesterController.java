@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +17,7 @@ import com.subiks.securefiletracker.model.Semester;
 import com.subiks.securefiletracker.service.SemesterService;
 
 @RestController
-@RequestMapping("/admin/semesters")
+@RequestMapping("/semesters")
 @CrossOrigin
 public class SemesterController {
 
@@ -35,6 +36,8 @@ public class SemesterController {
     }
 
     // Fetch semesters by department
+    
+    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT','ROLE_FACULTY','ROLE_ADMIN')")
     @GetMapping("/{deptId}")
     public ResponseEntity<List<Semester>> getSemesters(
             @PathVariable Long deptId) {

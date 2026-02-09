@@ -23,7 +23,7 @@ public class UserService {
     @Autowired
     private SemesterRepository semesterRepository;
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+private final BCryptPasswordEncoder encoder =  new BCryptPasswordEncoder();
 
     // ADMIN creates student / faculty
     public User createUser(

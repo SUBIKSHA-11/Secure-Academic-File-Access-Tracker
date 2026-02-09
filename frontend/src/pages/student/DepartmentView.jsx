@@ -9,7 +9,7 @@ const DepartmentView = ({ department, goBack }) => {
 
   useEffect(() => {
     api
-      .get(`/admin/semesters/${department.id}`)
+      .get(`/semesters/${department.id}`)
       .then((res) => setSemesters(res.data))
       .catch((err) => console.error(err));
   }, [department]);
@@ -26,7 +26,10 @@ const DepartmentView = ({ department, goBack }) => {
 
   return (
     <div className="dashboard">
-      <button onClick={goBack}>⬅ Back</button>
+     <button className="stu-back-btn" onClick={goBack}>
+  ⬅ Back
+</button>
+
 
       <div className="welcome-card">
         <h2>🏫 {department.name}</h2>

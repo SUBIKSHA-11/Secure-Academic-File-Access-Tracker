@@ -77,6 +77,27 @@ private static final String UPLOAD_DIR =
 public FileEntity getFileById(Long fileId) {
     return fileRepository.findById(fileId).orElse(null);
 }
+public void deleteFile(Long fileId, String facultyEmail) {
+
+    FileEntity file = fileRepository.findById(fileId)
+            .orElseThrow(() -> new RuntimeException("File not found"));
+
+    // faculty can delete only their files
+    if (!file.getUploadedBy().equals(facultyEmail)) {
+        throw new RuntimeException("Unauthorized delete");
+    }
+
+    File diskFile = new File(
+            System.getProperty("user.dir") + "/uploads/" +
+            file.getStoredFileName()
+    );
+
+    if (diskFile.exists()) {
+        diskFile.delete();
+    }
+
+    fileRepository.delete(file);
+}
 
 
 }

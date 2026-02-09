@@ -44,4 +44,18 @@ public class SubjectService {
         return subjectRepository
                 .findByDepartmentIdAndSemesterId(deptId, semId);
     }
+    
+
+public void addSubject(String name, Long semesterId) {
+
+    Semester semester = semesterRepository.findById(semesterId)
+            .orElseThrow(() -> new RuntimeException("Semester not found"));
+
+    Subject subject = new Subject();
+    subject.setName(name);
+    subject.setSemester(semester);
+
+    subjectRepository.save(subject);
+}
+
 }
