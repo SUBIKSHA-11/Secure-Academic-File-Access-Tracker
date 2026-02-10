@@ -32,27 +32,44 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
     .authorizeHttpRequests(auth -> auth
-        
+
+    // ----- PUBLIC -----
     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
     .requestMatchers("/auth/**").permitAll()
+
+    // ----- ADMIN -----
     .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
 
+    // ----- SEMESTERS / SUBJECTS / LESSONS (VIEW) -----
+    // ----- READ ACCESS (STUDENT / FACULTY / ADMIN) -----
+.requestMatchers(HttpMethod.GET,
+    "/semesters/**",
+    "/subjects/**",
+    "/lessons/**",
+    "/files/**"
+).hasAnyAuthority("ROLE_STUDENT", "ROLE_FACULTY", "ROLE_ADMIN")
+
+    // ----- FILE MODIFY -----
     .requestMatchers(HttpMethod.POST, "/files/upload")
-        .hasAuthority("ROLE_FACULTY")
+        .hasAnyAuthority("ROLE_FACULTY", "ROLE_ADMIN")
 
     .requestMatchers(HttpMethod.DELETE, "/files/**")
-        .hasAuthority("ROLE_FACULTY")
+        .hasAnyAuthority("ROLE_FACULTY", "ROLE_ADMIN")
 
     .requestMatchers(HttpMethod.PUT, "/files/**")
-        .hasAuthority("ROLE_FACULTY")
-.requestMatchers(HttpMethod.POST, "/lessons/**")
-    .hasAuthority("ROLE_FACULTY")
-    .requestMatchers(HttpMethod.DELETE, "/lessons/**")
-        .hasAuthority("ROLE_FACULTY")
+        .hasAnyAuthority("ROLE_FACULTY", "ROLE_ADMIN")
+
+    // ----- LESSON MODIFY -----
+    .requestMatchers(HttpMethod.POST, "/lessons/**")
+        .hasAnyAuthority("ROLE_FACULTY", "ROLE_ADMIN")
 
     .requestMatchers(HttpMethod.PUT, "/lessons/**")
-        .hasAuthority("ROLE_FACULTY")
+        .hasAnyAuthority("ROLE_FACULTY", "ROLE_ADMIN")
 
+    .requestMatchers(HttpMethod.DELETE, "/lessons/**")
+        .hasAnyAuthority("ROLE_FACULTY", "ROLE_ADMIN")
+
+    // ----- EVERYTHING ELSE -----
     .anyRequest().authenticated()
 )
 

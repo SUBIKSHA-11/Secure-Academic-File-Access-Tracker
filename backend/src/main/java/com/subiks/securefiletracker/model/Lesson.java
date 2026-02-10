@@ -26,7 +26,6 @@ public class Lesson {
     @JoinColumn(name = "subject_id")
     private Subject subject;
 @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    @SuppressWarnings("unused")
     private List<FileEntity> files;
 
     // getters & setters
@@ -44,4 +43,8 @@ public class Lesson {
     public void setFiles(List<FileEntity> files) {
         this.files = files;
     }
+    public List<FileEntity> getFiles() {
+    return files;
+}
+
 }

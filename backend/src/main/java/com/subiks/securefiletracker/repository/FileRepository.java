@@ -23,6 +23,19 @@ List<FileEntity> searchFiles(
     Long semesterId,
     String sensitivity
 );
+@Query("""
+SELECT f.originalFileName, f.downloadCount
+FROM FileEntity f
+ORDER BY f.downloadCount DESC
+""")
+List<Object[]> getDownloadStats();
+@Query("""
+SELECT f.uploadedBy, COUNT(f)
+FROM FileEntity f
+GROUP BY f.uploadedBy
+ORDER BY COUNT(f) DESC
+""")
+List<Object[]> getFacultyWorkload();
 
 
 }

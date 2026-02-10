@@ -25,6 +25,7 @@ public class FileEntity {
     private String sensitivity;  // LOW / HIGH
 
     private LocalDateTime uploadTime;
+private int downloadCount;
 
     @ManyToOne
     @JoinColumn(name = "lesson_id")
@@ -63,4 +64,12 @@ public class FileEntity {
     public void setLesson(Lesson lesson) {
         this.lesson = lesson;
     }
+    public int getDownloadCount() {
+    return downloadCount;
+}
+
+public void setDownloadCount(int downloadCount) {
+    this.downloadCount = downloadCount;
+}
+
 }

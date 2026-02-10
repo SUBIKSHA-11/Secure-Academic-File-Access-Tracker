@@ -25,9 +25,13 @@ const Login = () => {
       localStorage.setItem("role", decoded.role);
       localStorage.setItem("email", decoded.sub);
 
-      if (decoded.role === "STUDENT") window.location = "/student";
-      else if (decoded.role === "FACULTY") window.location = "/faculty";
-      else window.location = "/admin";
+      if (decoded.role === "ROLE_STUDENT") {
+  window.location = "/student";
+} else if (decoded.role === "ROLE_FACULTY") {
+  window.location = "/faculty";
+} else if (decoded.role === "ROLE_ADMIN") {
+  window.location = "/admin";
+}
 
     } catch {
       setError("❌ Invalid login details");

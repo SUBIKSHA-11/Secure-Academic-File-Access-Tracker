@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.subiks.securefiletracker.model.FileEntity;
+import com.subiks.securefiletracker.repository.FileRepository;
 import com.subiks.securefiletracker.service.FileService;
 
 @RestController
@@ -29,6 +30,8 @@ public class FileController {
 
     @Autowired
     private FileService fileService;
+    @Autowired
+    private FileRepository fileRepository;
 
     // ================= UPLOAD =================
     @PreAuthorize("hasAuthority('ROLE_FACULTY')")
@@ -103,6 +106,10 @@ public class FileController {
             }
 
             byte[] data = Files.readAllBytes(file.toPath());
+fileEntity.setDownloadCount(
+    fileEntity.getDownloadCount() + 1
+);
+fileRepository.save(fileEntity);
 
             return ResponseEntity.ok()
                     .header("Content-Disposition",

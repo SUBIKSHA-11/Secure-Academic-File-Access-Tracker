@@ -18,6 +18,7 @@ public class User {
     private Long id;
 
     private String name;
+private String regNo;
 
     @Column(unique = true)
     private String email;
@@ -59,4 +60,18 @@ public class User {
     public void setSemester(Semester semester) {
         this.semester = semester;
     }
+    @Column(length = 15)
+   private String phone;
+
+public String getPhone() {
+    return phone;
+}
+
+public void setPhone(String phone) {
+    this.phone = phone;
+}
+public String getRegNo() { return regNo; }
+public void setRegNo(String regNo) { this.regNo = regNo; }
+
+
 }
